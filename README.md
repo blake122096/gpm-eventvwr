@@ -28,10 +28,7 @@ This tutorial outlines the how to do group policy management in Active Directory
 <h2>Deployment and Configuration Steps</h2>
 
 <p>
-We can start off by creating some users within DC-1. Go to Active Directory Users and Computers or search dsa.msc in the search bar, right-click on the _EMPLOYEES OU -> New -> Users. Then you can proceed to fill in
-  any username and password. Once you get a few users we can begin to configure the group policy. 
-
-Search gpmc.msc for Group policy management console in the search bar. 
+Create users in Active Directory Users and Computers (or run dsa.msc). Right-click _EMPLOYEES > New > User and fill in the user details.  Then, open the Group Policy Management Console (gpmc.msc).
 </p>
 <br />
 
@@ -40,8 +37,8 @@ Search gpmc.msc for Group policy management console in the search bar.
   <img src="https://github.com/user-attachments/assets/929bf199-4d39-4ebb-b2ff-1e7acd2910a3" height="80%" width="80%" alt="gpmc landing page"/>
 </p>
 <p>
-We can either edit an existing group policy object (GPO) or create a new one. In this case, we'll edit the existing Default Domain Policy. Click on this then go to Computer Configuration -> Policies -> Windows
-  Settings -> Security Settings -> Account Policies -> Account Lockout Policy.
+Edit the "Default Domain Policy" GPO:  Navigate to 
+Computer Configuration > Policies > Windows Settings > Security Settings > Account Policies > Account Lockout Policy.
 </p>
 <br />
 
@@ -50,18 +47,21 @@ We can either edit an existing group policy object (GPO) or create a new one. In
 </p>
 <p>
 Some defintions:
-<p><b>Account lockout duration</b>: how long an account will be locked out for</p>
-<p><b>Account lockout threshold</b>: how many times incorrect credentials can be entered in before being locked out</p>
-<p><b>Allow administrator account lockout</b>: can apply lockout policy to the built-in administrator of the domain</p>
-<p><b>Reset account lockout counter after</b>: how long it takes for the threshold counter to reset after an incorrect input</p>
+<p><b>Account lockout duration</b>: determines how long a locked account remains inaccessible.</p>
+<p><b>Account lockout threshold</b>: defines the number of incorrect login attempts before an account is locked. </p>
+<p><b>Allow administrator account lockout</b>: setting determines whether the built-in Administrator account is subject to the account lockout policy, preventing potential brute-force attacks.</p>
+<p><b>Reset account lockout counter after</b>: determines the time it takes for the failed login attempt counter to reset after an incorrect password entry</p>
 <p>In this case we can set the lockout duration to 30min, threshold to 5 attempts, leave the administrator account lockout as not defined and the reset duration to 10min. 
-<p>Before we try to lock ourselves out of an account, we need to update the group policy in Client-1 or the client machine. We can do this by logging as an admin user into Client-1, going to the command line or
-Powershell as an administrator and running the command gpupdate /force.</p>
+<p>Before testing the account lockout policy, we need to ensure Client-1 has the latest Group Policy settings:
+
+    Log in to Client-1 as an administrator.
+    Open either the command prompt or PowerShell as an administrator.
+    Run the command gpupdate /force to update the Group Policy settings.</p>
 
 <img src="https://github.com/user-attachments/assets/375c8ce7-40b8-4c39-9ae0-9f2f9caedb37" height="80%" width="80%" alt="gpudpate force"/>
 
- <p> This will now update the group policy to include our changes to the account lockout policies. Now let's see what happens when we try to login incorrectly too many times. Pick any random user that was 
-   created before and log into Client-1. If you tried to enter incorrect credentials more than 5 times, this should appear.</p>
+ <p> Update Group Policy on Client-1: log in as an administrator and run 
+gpupdate /force.  Then, attempt to log in with incorrect credentials for any user more than 5 times to trigger the account lockout.</p>
 </p>
 <br />
 
@@ -69,16 +69,19 @@ Powershell as an administrator and running the command gpupdate /force.</p>
   <img src="https://github.com/user-attachments/assets/2a82e323-69d5-45ca-b389-c93936e1a4a6" height="80%" width="80%" alt="account lockout banner"/>
 </p>
 <p>
-We can try and unlock this account as an admin. Go back to DC-1 as an admin user and go Active Directory Users and Computers. It may be hard to find exactly which user was locked out, so an easy way to find them is
-  by right-clicking on mydomain.com -> Find...
+Let's unlock the account:
+
+    Log in to the domain controller (DC-1) as an administrator.
+    Open Active Directory Users and Computers.
+    If you can't easily find the locked user, right-click on mydomain.com and select "Find..." to search for the user.
+    Once you've located the user, right-click on their account and select "Unlock Account."
 </p>
 <br />
 <p>
   <img src="https://github.com/user-attachments/assets/395190cc-0168-4744-b1af-a6a2dca191f5" height="80%" width="80%" alt="find locked out user"/>
 </p>
 <p>
-Now once we access their account, you check the unlock account box and hit OK. This will unlock the user's account and allow them to sign in again. We can also reset a user's account from the find menu as well.
-  Simply right-click on the user's name and click on Reset password. This will also us to unlock the account at the same time if we haven't done so already.
+Unlock the user's account by checking the "Unlock account" box in their account properties. You can also reset their password (and unlock the account) by right-clicking the user and selecting "Reset password."
 </p>
 <br />
 <p>
@@ -87,8 +90,7 @@ Now once we access their account, you check the unlock account box and hit OK. T
 
 </p>
 <p>
-In the same drop down for resetting a password is an option to disable an account. We can simply click on this to disable a user's account and re-enable it via the same dropdown menu. The black down arrow in the
-  icon shows that the account has been disabled. There's normally a good reason for accounts being disabled such as an employee leaving the company or a compromised account. 
+Disable or re-enable a user account through the right-click menu. A disabled account is indicated by a black down arrow on its icon.  Accounts are typically disabled when an employee leaves or if an account is compromised.
 </p>
 <br />
 
@@ -96,9 +98,8 @@ In the same drop down for resetting a password is an option to disable an accoun
   <img src="https://github.com/user-attachments/assets/f21cd9f9-94a2-4d0a-9321-d7ca629693d1" height="80%" width="80%" alt="disabled account"/>
 </p>
 <p>
-Finally, we have a look at Event Viewer. Certain logs, like Security logs, may only be accessed by admins so we'll need to login Client-1 as an admin. Search eventvwr.msc in the search bar and enter to access
-  Event Viewer. This program holds all of the logs within the Windows operating system. Click on Windows logs in the left pane, then Security. We can then click Filter current log on the right pane then type in 
-  4624,4625 in the Event ID. Event IDs are numbers assigned to certain types of events within the system. 4624 is for a successful logon and 4625  is for a failed logon. Doing that we should get this.
+To view security logs in Event Viewer (
+eventvwr.msc), log in to Client-1 as an administrator. Navigate to Windows Logs > Security and filter the current log for Event IDs 4624 (successful logon) and 4625 (failed logon).
   
 </p>
 <br />
@@ -107,5 +108,5 @@ Finally, we have a look at Event Viewer. Certain logs, like Security logs, may o
   <img src="https://github.com/user-attachments/assets/c29ac1ac-86ee-425c-b89e-e57088b6dd88" height="80%" width="80%" alt="observing logs in event viewer"/>
 </p>
 <p>
-We can see our 5 failed logon attempts in a row. Afterwards, we can unlock the account and then logon again as a regular user.
+Observe the 5 failed logon attempts in the security log. Unlock the account in Active Directory Users and Computers, then log in as the user to confirm access is restored.
 </p>
